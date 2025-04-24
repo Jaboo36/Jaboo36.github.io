@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hyperborea Character Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+</head>
+<body class="bg-gray-900 text-orange-500 min-h-screen">
+<div class="container mx-auto px-4 py-8" x-data="attributeGenerator">
+    <h1 class="text-3xl font-bold text-center mb-8 text-orange-500">Hyperborea Character Generator</h1>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Section 1: Attribute Generation Methods -->
+        <div class="bg-gray-800 rounded-lg shadow-md p-6 border border-orange-500">
+            <h2 class="text-xl font-semibold mb-4 text-orange-400">Generation Methods</h2>
+            <div class="grid grid-cols-1 gap-3">
+                <template x-for="(method, index) in methods" :key="index">
+                    <button type="button"
+                            class="p-4 rounded-md border text-left transition-colors duration-200 hover:bg-gray-700"
+                            :class="selectedMethod === method.id ? 'bg-gray-700 border-orange-500 text-orange-400' : 'bg-gray-800 border-gray-700 text-orange-300'"
+                            @click="selectedMethod = method.id">
+                        <div class="font-bold" x-text="method.name"></div>
+                        <div class="text-sm opacity-80 mt-1" x-text="method.description"></div>
+                    </button>
+                </template>
+            </div>
+
+            <div class="mt-6">
+                <button @click="generateAttributes()"
+                        class="w-full py-2 bg-orange-600 text-white font-medium rounded hover:bg-orange-700">
+                    Generate Attributes
+                </button>
+            </div>
+        </div>
+
+        <!-- Section 2: Generated Attributes -->
+        <div class="bg-gray-800 rounded-lg shadow-md p-6 border border-orange-500">
+            <h2 class="text-xl font-semibold mb-2 text-orange-400 text-center">Generated Attributes</h2>
+
+            <!-- Standard attribute display - only show when not in Method II or when Set has been chosen -->
+            <template x-if="selectedMethod !== 'methodII' || !methodIISets">
+                <div class="flex flex-col items-center">
+                    <template x-if="attributes && generatedValues && selectedMethod === 'methodIII'">
+                        <h3 class="text-sm font-medium mb-4 text-orange-300 text-center">Use the dropdowns to assign values to attributes</h3>
+                    </template>
+
+                    <div class="space-y-4 flex flex-col items-center">
+                        <template x-for="(attr, index) in attributeNames" :key="index">
+                            <div class="relative">
+                                <div class="absolute -left-12 top-1/2 transform -translate-y-1/2 font-bold text-orange-500 text-right w-10"
+                                     x-text="attr.substring(0, 3).toUpperCase()"></div>
+                                <div class="h-24 w-24 bg-gray-700 border border-orange-700 rounded-md flex items-center justify-center">
+                                    <template x-if="attributes">
+                                        <div class="text-center">
+                                            <div x-text="attributes[attr.toLowerCase()]" class="text-xl font-bold"></div>
+                                        </div>
+                                    </template>
+                                    <template x-if="!attributes">
+                                        <div class="text-orange-300 opacity-70">-</div>
+                                    </template>
+                                </div>
+                                <!-- Value selector - only for Method III -->
+                                <template x-if="attributes && generatedValues && selectedMethod === 'methodIII'">
+                                    <div class="absolute -right-16 top-1/2 transform -translate-y-1/2">
+                                        <select class="bg-gray-800 text-orange-400 border border-orange-700 rounded py-1 px-2"
+                                                @change="(e) => assignAttributeValue(attr, parseInt(e.target.value))">
+                                            <template x-for="(value, valueIndex) in generatedValues" :key="valueIndex">
+                                                <option :value="valueIndex" :selected="attributes[attr.toLowerCase()] === value"
+                                                        x-text="value"></option>
+                                            </template>
+                                        </select>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+
+                    <template x-if="attributes">
+                        <div class="mt-4 pt-4 border-t border-orange-700 w-full">
+                            <!-- Total and average removed as requested -->
+                        </div>
+                    </template>
+                </div>
+            </template>
+
+            <!-- Method II Sets Selection (3 columns with box display) -->
+            <template x-if="selectedMethod === 'methodII' && methodIISets">
+                <div>
+                    <h3 class="text-sm font-medium mb-4 text-orange-300 text-center">
+                        <span x-text="selectedSetIndex === -1 ? 'Select one of the three attribute sets:' : 'Click on a set to view its details:'"></span>
+                    </h3>
+
+                    <div class="grid grid-cols-3 gap-4">
+                        <!-- Set 1 -->
+                        <div class="flex flex-col items-center space-y-3 p-2 rounded-md cursor-pointer"
+                             :class="[
+                                highlightedSet === 0 ? 'bg-gray-700' : '',
+                                selectedSetIndex === 0 ? 'border-2 border-orange-500 bg-gray-700' : ''
+                             ]"
+                             @mouseenter="highlightedSet = 0"
+                             @mouseleave="highlightedSet = selectedSetIndex === 0 ? 0 : -1"
+                             @click="previewMethodIISet(0)">
+                            <div class="text-center mb-1">
+                                <span class="font-medium text-orange-400">Set 1</span>
+                                <template x-if="selectedSetIndex === 0">
+                                    <span class="ml-1 text-orange-500 text-xs">(Selected)</span>
+                                </template>
+                            </div>
+
+                            <!-- Set 1 Attributes -->
+                            <template x-for="(attr, attrIndex) in attributeNames" :key="attrIndex">
+                                <div class="relative flex items-center">
+                                    <div class="mr-2 font-bold text-orange-500 text-right w-8"
+                                         x-text="attr.substring(0, 3).toUpperCase()"></div>
+                                    <div class="h-12 w-12 bg-gray-700 border border-orange-700 rounded-md flex items-center justify-center">
+                                        <div class="text-center">
+                                            <div x-text="methodIISets[0][attrIndex]" class="font-bold"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <div class="text-center mt-2 pt-2 border-t border-gray-600 w-full">
+                                <!-- Total removed as requested -->
+                            </div>
+                            <!-- Removed qualified classes section as requested -->
+                        </div>
+
+                        <!-- Set 2 -->
+                        <div class="flex flex-col items-center space-y-3 p-2 rounded-md cursor-pointer"
+                             :class="[
+                                highlightedSet === 1 ? 'bg-gray-700' : '',
+                                selectedSetIndex === 1 ? 'border-2 border-orange-500 bg-gray-700' : ''
+                             ]"
+                             @mouseenter="highlightedSet = 1"
+                             @mouseleave="highlightedSet = selectedSetIndex === 1 ? 1 : -1"
+                             @click="previewMethodIISet(1)">
+                            <div class="text-center mb-1">
+                                <span class="font-medium text-orange-400">Set 2</span>
+                                <template x-if="selectedSetIndex === 1">
+                                    <span class="ml-1 text-orange-500 text-xs">(Selected)</span>
+                                </template>
+                            </div>
+
+                            <!-- Set 2 Attributes -->
+                            <template x-for="(attr, attrIndex) in attributeNames" :key="attrIndex">
+                                <div class="relative flex items-center">
+                                    <div class="mr-2 font-bold text-orange-500 text-right w-8"
+                                         x-text="attr.substring(0, 3).toUpperCase()"></div>
+                                    <div class="h-12 w-12 bg-gray-700 border border-orange-700 rounded-md flex items-center justify-center">
+                                        <div class="text-center">
+                                            <div x-text="methodIISets[1][attrIndex]" class="font-bold"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <div class="text-center mt-2 pt-2 border-t border-gray-600 w-full">
+                                <!-- Total removed as requested -->
+                            </div>
+                            <!-- Removed qualified classes section as requested -->
+                        </div>
+
+                        <!-- Set 3 -->
+                        <div class="flex flex-col items-center space-y-3 p-2 rounded-md cursor-pointer"
+                             :class="[
+                                highlightedSet === 2 ? 'bg-gray-700' : '',
+                                selectedSetIndex === 2 ? 'border-2 border-orange-500 bg-gray-700' : ''
+                             ]"
+                             @mouseenter="highlightedSet = 2"
+                             @mouseleave="highlightedSet = selectedSetIndex === 2 ? 2 : -1"
+                             @click="previewMethodIISet(2)">
+                            <div class="text-center mb-1">
+                                <span class="font-medium text-orange-400">Set 3</span>
+                                <template x-if="selectedSetIndex === 2">
+                                    <span class="ml-1 text-orange-500 text-xs">(Selected)</span>
+                                </template>
+                            </div>
+
+                            <!-- Set 3 Attributes -->
+                            <template x-for="(attr, attrIndex) in attributeNames" :key="attrIndex">
+                                <div class="relative flex items-center">
+                                    <div class="mr-2 font-bold text-orange-500 text-right w-8"
+                                         x-text="attr.substring(0, 3).toUpperCase()"></div>
+                                    <div class="h-12 w-12 bg-gray-700 border border-orange-700 rounded-md flex items-center justify-center">
+                                        <div class="text-center">
+                                            <div x-text="methodIISets[2][attrIndex]" class="font-bold"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <div class="text-center mt-2 pt-2 border-t border-gray-600 w-full">
+                                <!-- Total removed as requested -->
+                            </div>
+                            <!-- Removed qualified classes section as requested -->
+                        </div>
+                    </div>
+
+                    <!-- Choose button for the selected set -->
+                    <div class="mt-6 text-center">
+                        <template x-if="selectedSetIndex !== -1">
+                            <button @click="selectMethodIISet(selectedSetIndex)"
+                                    class="px-6 py-2 bg-orange-600 text-white font-medium rounded hover:bg-orange-700">
+                                Choose Set <span x-text="selectedSetIndex + 1"></span>
+                            </button>
+                        </template>
+                        <template x-if="selectedSetIndex === -1">
+                            <div class="text-orange-300 text-sm">
+                                Click a set to preview and select it
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </template>
+
+            <template x-if="!attributes && selectedMethod !== 'methodII'">
+                <div class="text-center py-8 text-orange-400 opacity-70">
+                    Select a generation method and click "Generate Attributes" to begin
+                </div>
+            </template>
+        </div>
+
+        <!-- Section 3: Class Qualifications -->
+        <div class="bg-gray-800 rounded-lg shadow-md p-6 border border-orange-500">
+            <h2 class="text-xl font-semibold mb-4 text-orange-400">Class Qualifications</h2>
+            <template x-if="attributes">
+                <div class="space-y-2">
+                    <template x-for="(cls, index) in classes.filter(c => qualifiesForClass(c))" :key="index">
+                        <div class="p-3 rounded-md bg-gray-700 border border-orange-500">
+                            <div class="flex justify-between items-center">
+                                <span x-text="cls.name" class="font-medium"></span>
+                                <span class="text-orange-500">Qualified</span>
+                            </div>
+                            <div class="text-sm text-orange-300 mt-1">
+                                <span x-text="formatRequirements(cls.requirements)"></span>
+                            </div>
+                        </div>
+                    </template>
+
+                    <template x-if="classes.filter(c => qualifiesForClass(c)).length === 0">
+                        <div class="text-center py-4 text-orange-400">
+                            Character does not qualify for any classes
+                        </div>
+                    </template>
+                </div>
+            </template>
+            <template x-if="!attributes">
+                <div class="text-center py-8 text-orange-400 opacity-70">
+                    Generate attributes to see class qualifications
+                </div>
+            </template>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('attributeGenerator', () => ({
+            // State
+            selectedMethod: 'methodIII',
+            attributes: null,
+            attributeNames: ['Strength', 'Dexterity', 'Constitution', 'Intelligence', 'Wisdom', 'Charisma'],
+            generatedValues: null,
+            methodIISets: null,
+            selectedSetIndex: -1,
+            highlightedSet: -1,
+            attributeAssignments: {},
+
+            // Methods
+            methods: [
+                {
+                    id: 'methodI',
+                    name: 'Method I: 3d6 in order',
+                    description: 'Roll 3d6 for each attribute in order'
+                },
+                {
+                    id: 'methodII',
+                    name: 'Method II: 3 sets, choose best',
+                    description: 'Roll 3 complete sets of 3d6 and select your preferred set'
+                },
+                {
+                    id: 'methodIII',
+                    name: 'Method III: 4d6 drop lowest',
+                    description: 'Roll 4d6, discard lowest die for each attribute'
+                },
+                {
+                    id: 'methodIV',
+                    name: 'Method IV: Best of 3 × 3d6',
+                    description: 'Roll 3d6 three times for each attribute, take best roll'
+                },
+                {
+                    id: 'methodV',
+                    name: 'Method V: 2d6+6',
+                    description: 'Roll 2d6+6 for each attribute (higher average)'
+                },
+                {
+                    id: 'methodVI',
+                    name: 'Method VI: Class-specific',
+                    description: 'Roll 4d6 (discard low) for required attributes, 3d6 for others'
+                }
+            ],
+
+            // Classes
+            classes: [
+                {
+                    name: 'Fighter',
+                    requirements: { 'Strength': 9 },
+                    primeAttributes: ['STRENGTH']
+                },
+                {
+                    name: 'Ranger',
+                    requirements: { 'Strength': 13, 'Dexterity': 13, 'Constitution': 14, 'Wisdom': 14 },
+                    primeAttributes: ['STRENGTH', 'DEXTERITY']
+                },
+                {
+                    name: 'Mage',
+                    requirements: { 'Intelligence': 13 },
+                    primeAttributes: ['INTELLIGENCE']
+                },
+                {
+                    name: 'Cleric',
+                    requirements: { 'Wisdom': 13 },
+                    primeAttributes: ['WISDOM']
+                },
+                {
+                    name: 'Thief',
+                    requirements: { 'Dexterity': 13 },
+                    primeAttributes: ['DEXTERITY']
+                },
+                {
+                    name: 'Paladin',
+                    requirements: { 'Strength': 12, 'Constitution': 9, 'Wisdom': 13, 'Charisma': 17 },
+                    primeAttributes: ['STRENGTH', 'CHARISMA']
+                },
+                {
+                    name: 'Bard',
+                    requirements: { 'Dexterity': 12, 'Intelligence': 13, 'Charisma': 15 },
+                    primeAttributes: ['CHARISMA']
+                }
+            ],
+
+            // Methods implementation
+            init() {
+                console.log('Attribute Generator initialized');
+            },
+
+            calculateTotal(values) {
+                return values.reduce((sum, val) => sum + val, 0);
+            },
+
+            rollDie(sides) {
+                return Math.floor(Math.random() * sides) + 1;
+            },
+
+            rollThreeD6() {
+                return this.rollDie(6) + this.rollDie(6) + this.rollDie(6);
+            },
+
+            rollFourD6DropLowest() {
+                const rolls = [this.rollDie(6), this.rollDie(6), this.rollDie(6), this.rollDie(6)];
+                const minRoll = Math.min(...rolls);
+                const minIndex = rolls.indexOf(minRoll);
+                rolls.splice(minIndex, 1);
+                return rolls.reduce((sum, value) => sum + value, 0);
+            },
+
+            roll2D6Plus6() {
+                return this.rollDie(6) + this.rollDie(6) + 6;
+            },
+
+            generateAttributes() {
+                console.log('Generating attributes using method:', this.selectedMethod);
+
+                let values = [];
+
+                switch (this.selectedMethod) {
+                    case 'methodI':
+                        // METHOD I: Roll 3d6 for each attribute in order
+                        values = [
+                            this.rollThreeD6(), // STR
+                            this.rollThreeD6(), // DEX
+                            this.rollThreeD6(), // CON
+                            this.rollThreeD6(), // INT
+                            this.rollThreeD6(), // WIS
+                            this.rollThreeD6()  // CHA
+                        ];
+                        this.applyAttributeValues(values);
+                        break;
+
+                    case 'methodII':
+                        // METHOD II: Roll 3d6 for each attribute in order, 3 sets, choose best
+                        this.methodIISets = [
+                            [
+                                this.rollThreeD6(), this.rollThreeD6(), this.rollThreeD6(),
+                                this.rollThreeD6(), this.rollThreeD6(), this.rollThreeD6()
+                            ],
+                            [
+                                this.rollThreeD6(), this.rollThreeD6(), this.rollThreeD6(),
+                                this.rollThreeD6(), this.rollThreeD6(), this.rollThreeD6()
+                            ],
+                            [
+                                this.rollThreeD6(), this.rollThreeD6(), this.rollThreeD6(),
+                                this.rollThreeD6(), this.rollThreeD6(), this.rollThreeD6()
+                            ]
+                        ];
+                        this.selectedSetIndex = -1; // Reset selection
+                        this.attributes = null;     // Clear attributes until a set is selected
+                        break;
+
+                    case 'methodIII':
+                        // METHOD III: 4d6 drop lowest, assign as desired
+                        values = Array(6).fill(0).map(() => this.rollFourD6DropLowest());
+                        values.sort((a, b) => b - a); // Sort descending
+                        this.applyAttributeValues(values);
+                        break;
+
+                    case 'methodIV':
+                        // METHOD IV: Roll 3d6 three times for each attribute, select best result
+                        values = [];
+
+                        // For each attribute, roll 3d6 three times and take the highest value
+                        for (let i = 0; i < 6; i++) {
+                            const roll1 = this.rollThreeD6();
+                            const roll2 = this.rollThreeD6();
+                            const roll3 = this.rollThreeD6();
+                            values.push(Math.max(roll1, roll2, roll3));
+                        }
+
+                        this.applyAttributeValues(values);
+                        break;
+
+                    case 'methodV':
+                        // METHOD V: Roll 2d6+6 for each attribute in order
+                        values = [];
+                        for (let i = 0; i < 6; i++) {
+                            values.push(this.roll2D6Plus6());
+                        }
+                        this.applyAttributeValues(values);
+                        break;
+
+                    case 'methodVI':
+                        // METHOD VI: Class-specific method with requirements (using Fighter as default)
+                        const selectedClass = this.classes[0]; // Default to Fighter
+                        values = [];
+
+                        // Get required attributes for the selected class
+                        const requiredAttrs = Object.keys(selectedClass.requirements);
+
+                        for (let i = 0; i < this.attributeNames.length; i++) {
+                            const attrName = this.attributeNames[i];
+
+                            if (requiredAttrs.includes(attrName)) {
+                                // This attribute has a requirement, roll 4d6 drop lowest until we meet it
+                                let minRequired = selectedClass.requirements[attrName];
+                                let roll = this.rollFourD6DropLowest();
+
+                                // Keep rolling until we meet the requirement
+                                while (roll < minRequired) {
+                                    roll = this.rollFourD6DropLowest();
+                                }
+
+                                values.push(roll);
+                            } else {
+                                // No requirement, just roll 3d6
+                                values.push(this.rollThreeD6());
+                            }
+                        }
+                        this.applyAttributeValues(values);
+                        break;
+                }
+            },
+
+            applyAttributeValues(values) {
+                // Store the original generated values
+                this.generatedValues = [...values];
+
+                // Create the attributes object
+                this.attributes = {
+                    strength: values[0],
+                    dexterity: values[1],
+                    constitution: values[2],
+                    intelligence: values[3],
+                    wisdom: values[4],
+                    charisma: values[5]
+                };
+
+                // Initialize attribute assignments
+                this.attributeAssignments = {};
+                this.attributeNames.forEach((attr, index) => {
+                    this.attributeAssignments[values[index]] = attr;
+                });
+            },
+
+            // Preview a set without selecting it yet
+            previewMethodIISet(setIndex) {
+                if (!this.methodIISets || setIndex < 0 || setIndex > 2) return;
+
+                // Toggle preview selection if clicking on the currently previewed set
+                if (this.selectedSetIndex === setIndex) {
+                    this.selectedSetIndex = -1;
+                    return;
+                }
+
+                this.selectedSetIndex = setIndex;
+
+                // Set current attributes for display but don't commit to them yet
+                const values = this.methodIISets[setIndex];
+
+                // Create temporary attributes for qualification checks
+                let tempAttributes = {
+                    strength: values[0],
+                    dexterity: values[1],
+                    constitution: values[2],
+                    intelligence: values[3],
+                    wisdom: values[4],
+                    charisma: values[5]
+                };
+
+                // Set as temporary attributes for display but don't fully apply
+                this.attributes = tempAttributes;
+            },
+
+            // Commit to using the selected set
+            selectMethodIISet(setIndex) {
+                if (!this.methodIISets || setIndex < 0 || setIndex > 2) return;
+
+                this.selectedSetIndex = setIndex;
+                const values = this.methodIISets[setIndex];
+
+                this.applyAttributeValues(values);
+            },
+
+            // Get qualified classes for a given attribute set
+            getQualifiedClassesForSet(setIndex) {
+                if (!this.methodIISets || setIndex < 0 || setIndex > 2) return [];
+
+                const values = this.methodIISets[setIndex];
+                const tempAttributes = {
+                    strength: values[0],
+                    dexterity: values[1],
+                    constitution: values[2],
+                    intelligence: values[3],
+                    wisdom: values[4],
+                    charisma: values[5]
+                };
+
+                return this.classes
+                    .filter(characterClass => {
+                        for (const [attrName, minValue] of Object.entries(characterClass.requirements)) {
+                            if (tempAttributes[attrName.toLowerCase()] < minValue) {
+                                return false;
+                            }
+                        }
+                        return true;
+                    })
+                    .map(characterClass => characterClass.name);
+            },
+
+            assignAttributeValue(attrName, valueIndex) {
+                if (!this.generatedValues) return;
+
+                const newValue = this.generatedValues[valueIndex];
+
+                // Find current value assigned to the target attribute
+                let currentAttrValue = null;
+                let currentValueIndex = -1;
+
+                // Find the current attribute's value and its index in generatedValues
+                for (let i = 0; i < this.attributeNames.length; i++) {
+                    if (this.attributeNames[i].toLowerCase() === attrName.toLowerCase()) {
+                        currentAttrValue = this.attributes[attrName.toLowerCase()];
+                        // Find index of this value in generatedValues
+                        currentValueIndex = this.generatedValues.indexOf(currentAttrValue);
+                        break;
+                    }
+                }
+
+                if (currentValueIndex !== -1) {
+                    // Find which attribute is currently assigned to the new value
+                    let otherAttrName = null;
+                    for (let i = 0; i < this.attributeNames.length; i++) {
+                        const attr = this.attributeNames[i].toLowerCase();
+                        if (this.attributes[attr] === newValue) {
+                            otherAttrName = attr;
+                            break;
+                        }
+                    }
+
+                    if (otherAttrName) {
+                        // Swap the values
+                        const tempAttr = { ...this.attributes };
+                        tempAttr[attrName.toLowerCase()] = newValue;
+                        tempAttr[otherAttrName] = currentAttrValue;
+                        this.attributes = tempAttr;
+                    }
+                }
+            },
+
+            getAttributeValue(attrName) {
+                if (!this.attributes) return 0;
+                return this.attributes[attrName.toLowerCase()] || 0;
+            },
+
+            getModifier(attrName) {
+                const value = this.getAttributeValue(attrName);
+                return Math.floor((value - 10) / 2);
+            },
+
+            formatModifier(mod) {
+                return mod >= 0 ? `+${mod}` : `${mod}`;
+            },
+
+            getModifierClass(mod) {
+                if (mod > 0) return 'text-orange-500';
+                if (mod < 0) return 'text-gray-400';
+                return 'text-orange-300';
+            },
+
+            getAttributeTotal() {
+                if (!this.attributes) return 0;
+                return Object.values(this.attributes).reduce((sum, value) => sum + value, 0);
+            },
+
+            getAttributeAverage() {
+                if (!this.attributes) return "0";
+                const total = this.getAttributeTotal();
+                return (total / 6).toFixed(1);
+            },
+
+            qualifiesForClass(characterClass) {
+                if (!this.attributes) return false;
+
+                for (const [attrName, minValue] of Object.entries(characterClass.requirements)) {
+                    if (this.getAttributeValue(attrName) < minValue) {
+                        return false;
+                    }
+                }
+
+                return true;
+            },
+
+            formatRequirements(requirements) {
+                return Object.entries(requirements)
+                    .map(([attr, value]) => `${attr}: ${value}+`)
+                    .join(', ');
+            }
+        }));
+    });
+</script>
+</body>
+</html>
