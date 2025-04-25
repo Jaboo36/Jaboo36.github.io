@@ -40,7 +40,7 @@
             <h2 class="text-xl font-semibold mb-2 text-orange-400 text-center" x-show="selectedMethod !== 'methodVI' || !methodVIClassSelection">Generated Attributes</h2>
             <div class="flex-grow flex flex-col justify-center">
 
-            <!-- Method VI Class Selection -->
+            <!-- Method VI Class Selection (only shown during selection phase) -->
             <template x-if="selectedMethod === 'methodVI' && methodVIClassSelection">
                 <div class="flex-grow flex flex-col justify-start">
                     <h2 class="text-xl font-semibold mb-4 text-orange-400 text-center">Class Selection</h2>
@@ -72,8 +72,27 @@
                 </div>
             </template>
 
-            <!-- Standard attribute display - only show when not in Method II or Method VI selection, or when Set/Class has been chosen -->
-            <template x-if="(selectedMethod !== 'methodII' || !methodIISets) && (selectedMethod !== 'methodVI' || !methodVIClassSelection)">
+            <!-- Generated attributes for Method VI (shown after class selection) -->
+            <template x-if="selectedMethod === 'methodVI' && !methodVIClassSelection && attributes">
+                <div class="flex-grow flex flex-col justify-center">
+                    <div class="space-y-5 flex flex-col items-center">
+                        <template x-for="(attr, index) in attributeNames" :key="index">
+                            <div class="relative mb-4">
+                                <div class="absolute -left-9 top-1/2 transform -translate-y-1/2 font-bold text-orange-500 text-right w-8"
+                                     x-text="attr.substring(0, 3).toUpperCase()"></div>
+                                <div class="h-20 w-20 bg-gray-700 border border-orange-700 rounded-md flex items-center justify-center">
+                                    <div class="text-center">
+                                        <div x-text="attributes[attr.toLowerCase()]" class="text-xl font-bold"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </template>
+
+            <!-- Standard attribute display - only show when not in Method II or Method VI -->
+            <template x-if="(selectedMethod !== 'methodII' || !methodIISets) && selectedMethod !== 'methodVI'">
                 <div class="flex flex-col items-center flex-grow justify-center">
                     <template x-if="attributes && generatedValues && selectedMethod === 'methodIII'">
                         <h3 class="text-sm font-medium mb-4 text-orange-300 text-center">Use the dropdowns to assign values to attributes</h3>
@@ -292,37 +311,35 @@
         
         <!-- Selected Class info for Method VI -->
         <div class="bg-gray-800 rounded-lg shadow-md p-6 border border-orange-500 h-[800px] flex flex-col" x-show="selectedMethod === 'methodVI'">
-            <h2 class="text-xl font-semibold mb-4 text-orange-400">Generated Attributes</h2>
+            <h2 class="text-xl font-semibold mb-4 text-orange-400">Selected Class</h2>
             
-            <template x-if="attributes && !methodVIClassSelection">
-                <div class="flex-grow flex flex-col justify-center">
-                    <div class="text-center mb-4">
-                        <div class="font-medium text-lg text-orange-400" x-text="selectedClassForMethodVI ? selectedClassForMethodVI.name : ''"></div>
-                        <div class="text-sm text-orange-300 mt-1" x-text="selectedClassForMethodVI ? formatRequirements(selectedClassForMethodVI.requirements) : ''"></div>
-                    </div>
-                    
-                    <div class="space-y-5 flex flex-col items-center">
-                        <template x-for="(attr, index) in attributeNames" :key="index">
-                            <div class="relative mb-4">
-                                <div class="absolute -left-10 top-1/2 transform -translate-y-1/2 font-bold text-orange-500 text-right w-8"
-                                     x-text="attr.substring(0, 3).toUpperCase()"></div>
-                                <div class="h-20 w-20 bg-gray-700 border border-orange-700 rounded-md flex items-center justify-center">
-                                    <template x-if="attributes">
-                                        <div class="text-center">
-                                            <div x-text="attributes[attr.toLowerCase()]" class="text-xl font-bold"></div>
-                                        </div>
-                                    </template>
-                                </div>
+            <template x-if="selectedClassForMethodVI">
+                <div class="flex-grow flex flex-col justify-center items-center">
+                    <div class="p-6 rounded-md bg-gray-700 border border-orange-500 max-w-[80%] text-center">
+                        <div class="text-2xl font-medium text-orange-400 mb-4" x-text="selectedClassForMethodVI.name"></div>
+                        <div class="text-lg text-orange-300 mb-6" x-text="formatRequirements(selectedClassForMethodVI.requirements)"></div>
+                        
+                        <div class="mt-6 pt-6 border-t border-orange-600">
+                            <div class="text-lg text-orange-300 mb-2">Prime Attributes:</div>
+                            <div class="flex flex-wrap justify-center gap-3">
+                                <template x-for="(primeAttr, index) in selectedClassForMethodVI.primeAttributes" :key="index">
+                                    <div class="px-3 py-1 bg-gray-600 rounded-md text-orange-400 font-medium" 
+                                         x-text="primeAttr.charAt(0) + primeAttr.slice(1).toLowerCase()"></div>
+                                </template>
                             </div>
-                        </template>
+                        </div>
+                        
+                        <div class="mt-8 text-sm text-orange-300" x-show="!methodVIClassSelection && attributes">
+                            <span>Attributes have been optimized for this class</span>
+                        </div>
                     </div>
                 </div>
             </template>
             
-            <template x-if="methodVIClassSelection || !attributes">
+            <template x-if="!selectedClassForMethodVI">
                 <div class="flex-grow flex items-center justify-center">
                     <div class="text-center text-orange-300">
-                        Select a class and generate attributes to see results here
+                        Select a class to optimize your character's attributes
                     </div>
                 </div>
             </template>
