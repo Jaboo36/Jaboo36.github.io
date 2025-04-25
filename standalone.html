@@ -228,11 +228,15 @@
             <h2 class="text-xl font-semibold mb-4 text-orange-400">Class Qualifications</h2>
             <template x-if="attributes">
                 <div class="space-y-2">
-                    <template x-for="(cls, index) in classes.filter(c => qualifiesForClass(c))" :key="index">
+                    <template x-for="(cls, index) in getSortedQualifyingClasses()" :key="index">
                         <div class="p-3 rounded-md bg-gray-700 border border-orange-500">
                             <div class="flex justify-between items-center">
                                 <span x-text="cls.name" class="font-medium"></span>
-                                <span class="text-orange-500">Qualified</span>
+                                <div class="flex items-center">
+                                    <div class="w-24 bg-gray-600 rounded-full h-2">
+                                        <div class="bg-orange-500 h-2 rounded-full" :style="`width: ${cls.normalizedBarWidth}%`"></div>
+                                    </div>
+                                </div>
                             </div>
                             <div class="text-sm text-orange-300 mt-1">
                                 <span x-text="formatRequirements(cls.requirements)"></span>
@@ -240,7 +244,7 @@
                         </div>
                     </template>
 
-                    <template x-if="classes.filter(c => qualifiesForClass(c)).length === 0">
+                    <template x-if="getSortedQualifyingClasses().length === 0">
                         <div class="text-center py-4 text-orange-400">
                             Character does not qualify for any classes
                         </div>
@@ -311,34 +315,255 @@
                     primeAttributes: ['STRENGTH']
                 },
                 {
-                    name: 'Ranger',
-                    requirements: { 'Strength': 13, 'Dexterity': 13, 'Constitution': 14, 'Wisdom': 14 },
-                    primeAttributes: ['STRENGTH', 'DEXTERITY']
-                },
-                {
-                    name: 'Mage',
-                    requirements: { 'Intelligence': 13 },
+                    name: 'Magician',
+                    requirements: { 'Intelligence': 9 },
                     primeAttributes: ['INTELLIGENCE']
                 },
                 {
                     name: 'Cleric',
-                    requirements: { 'Wisdom': 13 },
+                    requirements: { 'Wisdom': 9 },
                     primeAttributes: ['WISDOM']
                 },
                 {
                     name: 'Thief',
-                    requirements: { 'Dexterity': 13 },
+                    requirements: { 'Dexterity': 9 },
                     primeAttributes: ['DEXTERITY']
                 },
                 {
-                    name: 'Paladin',
-                    requirements: { 'Strength': 12, 'Constitution': 9, 'Wisdom': 13, 'Charisma': 17 },
+                    name: 'Barbarian',
+                    requirements: {
+                        'Strength': 13,
+                        'Dexterity': 13,
+                        'Constitution': 13,
+                    },
+                    primeAttributes: ['STRENGTH', 'DEXTERITY']
+                },
+                {
+                    name: 'Berserker',
+                    requirements: {
+                        'Strength': 15,
+                        'Constitution': 15
+                    },
+                    primeAttributes:  ['STRENGTH', 'CONSTITUTION']
+                },
+                {
+                    name: 'Cataphract',
+                    requirements: {
+                        'Strength': 9,
+                        'Dexterity': 9,
+                        'Wisdom': 9,
+                        'Charisma': 9,
+                    },
                     primeAttributes: ['STRENGTH', 'CHARISMA']
                 },
                 {
+                    name: 'Huntsman',
+                    requirements: {
+                        'Strength': 9,
+                        'Dexterity': 9,
+                        'Wisdom': 9,
+                        'Charisma': 12,
+                    },
+                    primeAttributes:  ['STRENGTH', 'WISDOM']
+                },
+                {
+                    name: 'Paladin',
+                    requirements: {
+                        'Strength': 9,
+                        'Dexterity': 9,
+                        'Wisdom': 9,
+                        'Charisma': 15,
+                    },
+                    primeAttributes:  ['STRENGTH', 'CHARISMA']
+                },
+                {
+                    name: 'Ranger',
+                    requirements: {
+                        'Strength': 9,
+                        'Dexterity': 9,
+                        'Intelligence': 9,
+                        'Wisdom': 9
+                    },
+                    primeAttributes: ['STRENGTH', 'WISDOM']
+                },
+                {
+                    name: 'Warlock',
+                    requirements: {
+                        'Strength': 12,
+                        'Intelligence': 12
+                    },
+                    primeAttributes:   ['STRENGTH', 'INTELLIGENCE']
+                },
+                {
+                    name: 'Warlock (Death Soldier)',
+                    requirements: {
+                        'Strength': 12,
+                        'Intelligence': 12,
+                        'Wisdom': 12
+                    },
+                    primeAttributes:  ['STRENGTH', 'INTELLIGENCE']
+                },
+                {
+                    name: 'Warlock (Fire Lord)',
+                    requirements: {
+                        'Strength': 12,
+                        'Intelligence': 12,
+                        'Wisdom': 12
+                    },
+                    primeAttributes:  ['STRENGTH', 'INTELLIGENCE']
+                },
+                {
+                    name: 'Warlock (Ice Lord)',
+                    requirements: {
+                        'Strength': 12,
+                        'Intelligence': 12,
+                        'Wisdom': 12
+                    },
+                    primeAttributes:   ['STRENGTH', 'INTELLIGENCE']
+                },
+                {
+                    name: 'Cryomancer',
+                    requirements: {
+                        'Intelligence': 9,
+                        'Wisdom': 9
+                    },
+                    primeAttributes:   ['INTELLIGENCE', 'WISDOM']
+                },
+                {
+                    name: 'Illusionist',
+                    requirements: {
+                        'Dexterity': 9,
+                        'Intelligence': 9
+                    },
+                    primeAttributes: ['DEXTERITY', 'INTELLIGENCE']
+                },
+                {
+                    name: 'Necromancer',
+                    requirements: {
+                        'Intelligence': 9,
+                        'Wisdom': 9
+                    },
+                    primeAttributes:   ['INTELLIGENCE', 'WISDOM']
+                },
+                {
+                    name: 'Pyromancer',
+                    requirements: {
+                        'Intelligence': 9,
+                        'Wisdom': 9
+                    },
+                    primeAttributes:   ['INTELLIGENCE', 'WISDOM']
+                },
+                {
+                    name: 'Witch',
+                    requirements: {
+                        'Intelligence': 9,
+                        'Wisdom': 9,
+                        'Charisma': 12,
+                    },
+                    primeAttributes:  ['INTELLIGENCE', 'CHARISMA']
+                },
+                {
+                    name: 'Druid',
+                    requirements: {
+                        'Wisdom': 9,
+                        'Charisma': 12,
+                    },
+                    primeAttributes: ['WISDOM', 'CHARISMA']
+                },
+                {
+                    name: 'Monk',
+                    requirements: {
+                        'Strength': 9,
+                        'Dexterity': 9,
+                        'Wisdom': 9
+                    },
+                    primeAttributes: ['DEXTERITY', 'WISDOM']
+                },
+                {
+                    name: 'Priest',
+                    requirements: {
+                      'Wisdom': 9,
+                      'Charisma': 9
+                    },
+                    primeAttributes:   ['WISDOM', 'CHARISMA']
+                },
+                {
+                    name: 'Runegraver',
+                    requirements: {
+                        'Strength': 9,
+                        'Wisdom': 12
+                    },
+                    primeAttributes: ['STRENGTH', 'WISDOM']
+                },
+                {
+                    name: 'Shaman',
+                    requirements: {
+                        'Intelligence': 9,
+                        'Wisdom': 12,
+                    },
+                    primeAttributes:   ['INTELLIGENCE', 'WISDOM']
+                },
+                {
+                    name: 'Assassin',
+                    requirements: {
+                        'Strength': 9,
+                        'Dexterity': 9,
+                        'Intelligence': 9
+                    },
+                    primeAttributes:   ['DEXTERITY', 'INTELLIGENCE']
+                },
+                {
                     name: 'Bard',
-                    requirements: { 'Dexterity': 12, 'Intelligence': 13, 'Charisma': 15 },
-                    primeAttributes: ['CHARISMA']
+                    requirements: {
+                        'Strength': 9,
+                        'Dexterity': 9,
+                        'Intelligence': 9,
+                        'Wisdom': 9,
+                        'Charisma': 15
+                    },
+                    primeAttributes:  ['DEXTERITY', 'CHARISMA']
+                },
+                {
+                    name: 'Legerdemainist',
+                    requirements: {
+                        'Dexterity': 12,
+                        'Intelligence': 12
+                    },
+                    primeAttributes: ['DEXTERITY', 'INTELLIGENCE']
+                },
+                {
+                    name: 'Legerdemainist (Fire Thief)',
+                    requirements: {
+                        'Dexterity': 12,
+                        'Intelligence': 12,
+                        'Wisdom': 12
+                    },
+                    primeAttributes: ['DEXTERITY', 'INTELLIGENCE']
+                },
+                {
+                    name: 'Legerdemainist (Ice Thief)',
+                    requirements: {
+                        'Dexterity': 12,
+                        'Intelligence': 12,
+                        'Wisdom': 12
+                    },
+                    primeAttributes: ['DEXTERITY', 'INTELLIGENCE']
+                },
+                {
+                    name: 'Purloiner',
+                    requirements: {
+                        'Dexterity': 12,
+                        'Wisdom': 12
+                    },
+                    primeAttributes: ['DEXTERITY', 'WISDOM']
+                },
+                {
+                    name: 'Scout',
+                    requirements: {
+                        'Dexterity': 9,
+                        'Intelligence': 9
+                    },
+                    primeAttributes:   ['DEXTERITY', 'INTELLIGENCE']
                 }
             ],
 
@@ -646,6 +871,119 @@
                 return Object.entries(requirements)
                     .map(([attr, value]) => `${attr}: ${value}+`)
                     .join(', ');
+            },
+            
+            calculateClassFitnessScore(characterClass) {
+                if (!this.attributes) return 0;
+                
+                // Base score starts at 0
+                let fitnessScore = 0;
+                let totalPossibleScore = 0;
+                
+                // Get number of requirements for this class
+                const requirementsCount = Object.keys(characterClass.requirements).length;
+                
+                // Calculate score based on attribute bonus bands
+                for (const [attrName, minValue] of Object.entries(characterClass.requirements)) {
+                    const attrValue = this.getAttributeValue(attrName);
+                    
+                    if (attrValue >= minValue) {
+                        // Calculate band-based score
+                        // Bands: 9-12, 13-14, 15-16, 17, 18
+                        let bandScore = 0;
+                        
+                        if (attrValue >= 18) {
+                            bandScore = 1.0; // Maximum score for attribute 18
+                        } else if (attrValue === 17) {
+                            bandScore = 0.8; // Score for attribute 17
+                        } else if (attrValue >= 15) {
+                            bandScore = 0.6; // Score for attributes 15-16
+                        } else if (attrValue >= 13) {
+                            bandScore = 0.4; // Score for attributes 13-14
+                        } else {
+                            bandScore = 0.2; // Score for attributes 9-12
+                        }
+                        
+                        fitnessScore += bandScore;
+                    }
+                    
+                    // Add to total possible score
+                    totalPossibleScore += 1;
+                }
+                
+                // Check if all prime attributes are 16 or greater
+                let allPrimeAttributesMeetThreshold = true;
+                
+                // Only check if there are prime attributes
+                if (characterClass.primeAttributes.length > 0) {
+                    for (const primeAttr of characterClass.primeAttributes) {
+                        const attrName = primeAttr.charAt(0) + primeAttr.slice(1).toLowerCase();
+                        const attrValue = this.getAttributeValue(attrName);
+                        
+                        if (attrValue < 16) {
+                            allPrimeAttributesMeetThreshold = false;
+                            break;
+                        }
+                    }
+                    
+                    // Add bonus only if all prime attributes are 16 or greater
+                    // Use fixed bonus regardless of number of prime attributes
+                    if (allPrimeAttributesMeetThreshold) {
+                        // Add a significant fixed bonus when all prime attributes are 16+
+                        fitnessScore += 1.0;
+                        totalPossibleScore += 1.0;
+                    }
+                }
+                
+                // Apply a multiplier based on the number of requirements
+                // This gives preference to classes that are harder to qualify for
+                // The base multiplier starts at 1.0 for single-requirement classes
+                const difficultyMultiplier = 1.0 + (requirementsCount - 1) * 0.15;
+                
+                // Apply the multiplier to the normalized score
+                const normalizedScore = totalPossibleScore > 0 ? fitnessScore / totalPossibleScore : 0;
+                
+                // Return the adjusted score, capped at 1.0 to maintain the 0-1 range
+                return Math.min(normalizedScore * difficultyMultiplier, 1.0);
+            },
+            
+            getSortedQualifyingClasses() {
+                if (!this.attributes) return [];
+                
+                // Filter and cache qualified classes with their fitness scores
+                const qualifiedClasses = this.classes
+                    .filter(c => this.qualifiesForClass(c))
+                    .map(c => {
+                        return {
+                            ...c,
+                            fitnessScore: this.calculateClassFitnessScore(c)
+                        };
+                    });
+                
+                // Sort by fitness score (descending)
+                const sortedClasses = qualifiedClasses.sort((a, b) => b.fitnessScore - a.fitnessScore);
+                
+                // Find maximum and minimum scores to normalize bar widths
+                if (sortedClasses.length > 0) {
+                    const maxScore = sortedClasses[0].fitnessScore;
+                    const minScore = sortedClasses.length > 1 ? 
+                        sortedClasses[sortedClasses.length - 1].fitnessScore : 
+                        0;
+                    
+                    // Calculate normalized bar widths (0-100%)
+                    return sortedClasses.map(cls => {
+                        const normalizedWidth = maxScore > minScore ? 
+                            ((cls.fitnessScore - minScore) / (maxScore - minScore)) * 100 : 
+                            100;
+                        
+                        return {
+                            ...cls,
+                            normalizedBarWidth: normalizedWidth
+                        };
+                    });
+                }
+                
+                return sortedClasses;
             }
         }));
     });
