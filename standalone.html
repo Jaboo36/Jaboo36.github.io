@@ -13,9 +13,9 @@
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <!-- Section 1: Attribute Generation Methods -->
-        <div class="bg-gray-800 rounded-lg shadow-md p-6 border border-orange-500">
+        <div class="bg-gray-800 rounded-lg shadow-md p-6 border border-orange-500 h-[800px] flex flex-col">
             <h2 class="text-xl font-semibold mb-4 text-orange-400">Generation Methods</h2>
-            <div class="grid grid-cols-1 gap-3">
+            <div class="grid grid-cols-1 gap-3 flex-grow">
                 <template x-for="(method, index) in methods" :key="index">
                     <button type="button"
                             class="p-4 rounded-md border text-left transition-colors duration-200 hover:bg-gray-700"
@@ -36,22 +36,23 @@
         </div>
 
         <!-- Section 2: Generated Attributes -->
-        <div class="bg-gray-800 rounded-lg shadow-md p-6 border border-orange-500">
+        <div class="bg-gray-800 rounded-lg shadow-md p-6 border border-orange-500 h-[800px] flex flex-col">
             <h2 class="text-xl font-semibold mb-2 text-orange-400 text-center">Generated Attributes</h2>
+            <div class="flex-grow flex flex-col justify-center">
 
             <!-- Standard attribute display - only show when not in Method II or when Set has been chosen -->
             <template x-if="selectedMethod !== 'methodII' || !methodIISets">
-                <div class="flex flex-col items-center">
+                <div class="flex flex-col items-center flex-grow justify-center">
                     <template x-if="attributes && generatedValues && selectedMethod === 'methodIII'">
                         <h3 class="text-sm font-medium mb-4 text-orange-300 text-center">Use the dropdowns to assign values to attributes</h3>
                     </template>
 
-                    <div class="space-y-4 flex flex-col items-center">
+                    <div class="space-y-5 flex flex-col items-center">
                         <template x-for="(attr, index) in attributeNames" :key="index">
-                            <div class="relative">
-                                <div class="absolute -left-12 top-1/2 transform -translate-y-1/2 font-bold text-orange-500 text-right w-10"
+                            <div class="relative mb-4">
+                                <div class="absolute -left-9 top-1/2 transform -translate-y-1/2 font-bold text-orange-500 text-right w-8"
                                      x-text="attr.substring(0, 3).toUpperCase()"></div>
-                                <div class="h-24 w-24 bg-gray-700 border border-orange-700 rounded-md flex items-center justify-center">
+                                <div class="h-20 w-20 bg-gray-700 border border-orange-700 rounded-md flex items-center justify-center">
                                     <template x-if="attributes">
                                         <div class="text-center">
                                             <div x-text="attributes[attr.toLowerCase()]" class="text-xl font-bold"></div>
@@ -87,14 +88,14 @@
 
             <!-- Method II Sets Selection (3 columns with box display) -->
             <template x-if="selectedMethod === 'methodII' && methodIISets">
-                <div>
+                <div class="flex-grow flex flex-col justify-center">
                     <h3 class="text-sm font-medium mb-4 text-orange-300 text-center">
                         <span x-text="selectedSetIndex === -1 ? 'Select one of the three attribute sets:' : 'Click on a set to view its details:'"></span>
                     </h3>
 
-                    <div class="grid grid-cols-3 gap-4">
+                    <div class="grid grid-cols-3 gap-2 w-full px-1">
                         <!-- Set 1 -->
-                        <div class="flex flex-col items-center space-y-3 p-2 rounded-md cursor-pointer"
+                        <div class="flex flex-col items-center space-y-1 p-1 rounded-md cursor-pointer"
                              :class="[
                                 highlightedSet === 0 ? 'bg-gray-700' : '',
                                 selectedSetIndex === 0 ? 'border-2 border-orange-500 bg-gray-700' : ''
@@ -111,10 +112,10 @@
 
                             <!-- Set 1 Attributes -->
                             <template x-for="(attr, attrIndex) in attributeNames" :key="attrIndex">
-                                <div class="relative flex items-center">
-                                    <div class="mr-2 font-bold text-orange-500 text-right w-8"
+                                <div class="relative flex items-center mb-1">
+                                    <div class="mr-1 font-bold text-orange-500 text-right w-8"
                                          x-text="attr.substring(0, 3).toUpperCase()"></div>
-                                    <div class="h-12 w-12 bg-gray-700 border border-orange-700 rounded-md flex items-center justify-center">
+                                    <div class="h-16 w-16 bg-gray-700 border border-orange-700 rounded-md flex items-center justify-center">
                                         <div class="text-center">
                                             <div x-text="methodIISets[0][attrIndex]" class="font-bold"></div>
                                         </div>
@@ -129,7 +130,7 @@
                         </div>
 
                         <!-- Set 2 -->
-                        <div class="flex flex-col items-center space-y-3 p-2 rounded-md cursor-pointer"
+                        <div class="flex flex-col items-center space-y-1 p-1 rounded-md cursor-pointer"
                              :class="[
                                 highlightedSet === 1 ? 'bg-gray-700' : '',
                                 selectedSetIndex === 1 ? 'border-2 border-orange-500 bg-gray-700' : ''
@@ -146,10 +147,10 @@
 
                             <!-- Set 2 Attributes -->
                             <template x-for="(attr, attrIndex) in attributeNames" :key="attrIndex">
-                                <div class="relative flex items-center">
-                                    <div class="mr-2 font-bold text-orange-500 text-right w-8"
+                                <div class="relative flex items-center mb-1">
+                                    <div class="mr-1 font-bold text-orange-500 text-right w-8"
                                          x-text="attr.substring(0, 3).toUpperCase()"></div>
-                                    <div class="h-12 w-12 bg-gray-700 border border-orange-700 rounded-md flex items-center justify-center">
+                                    <div class="h-16 w-16 bg-gray-700 border border-orange-700 rounded-md flex items-center justify-center">
                                         <div class="text-center">
                                             <div x-text="methodIISets[1][attrIndex]" class="font-bold"></div>
                                         </div>
@@ -164,7 +165,7 @@
                         </div>
 
                         <!-- Set 3 -->
-                        <div class="flex flex-col items-center space-y-3 p-2 rounded-md cursor-pointer"
+                        <div class="flex flex-col items-center space-y-1 p-1 rounded-md cursor-pointer"
                              :class="[
                                 highlightedSet === 2 ? 'bg-gray-700' : '',
                                 selectedSetIndex === 2 ? 'border-2 border-orange-500 bg-gray-700' : ''
@@ -181,10 +182,10 @@
 
                             <!-- Set 3 Attributes -->
                             <template x-for="(attr, attrIndex) in attributeNames" :key="attrIndex">
-                                <div class="relative flex items-center">
-                                    <div class="mr-2 font-bold text-orange-500 text-right w-8"
+                                <div class="relative flex items-center mb-1">
+                                    <div class="mr-1 font-bold text-orange-500 text-right w-8"
                                          x-text="attr.substring(0, 3).toUpperCase()"></div>
-                                    <div class="h-12 w-12 bg-gray-700 border border-orange-700 rounded-md flex items-center justify-center">
+                                    <div class="h-16 w-16 bg-gray-700 border border-orange-700 rounded-md flex items-center justify-center">
                                         <div class="text-center">
                                             <div x-text="methodIISets[2][attrIndex]" class="font-bold"></div>
                                         </div>
@@ -200,7 +201,7 @@
                     </div>
 
                     <!-- Choose button for the selected set -->
-                    <div class="mt-6 text-center">
+                    <div class="mt-4 text-center">
                         <template x-if="selectedSetIndex !== -1">
                             <button @click="selectMethodIISet(selectedSetIndex)"
                                     class="px-6 py-2 bg-orange-600 text-white font-medium rounded hover:bg-orange-700">
@@ -216,6 +217,7 @@
                 </div>
             </template>
 
+            </div>
             <template x-if="!attributes && selectedMethod !== 'methodII'">
                 <div class="text-center py-8 text-orange-400 opacity-70">
                     Select a generation method and click "Generate Attributes" to begin
@@ -224,18 +226,16 @@
         </div>
 
         <!-- Section 3: Class Qualifications -->
-        <div class="bg-gray-800 rounded-lg shadow-md p-6 border border-orange-500">
+        <div class="bg-gray-800 rounded-lg shadow-md p-6 border border-orange-500 h-[800px] flex flex-col">
             <h2 class="text-xl font-semibold mb-4 text-orange-400">Class Qualifications</h2>
             <template x-if="attributes">
-                <div class="space-y-2">
+                <div class="space-y-4 overflow-y-auto flex-grow pr-2">
                     <template x-for="(cls, index) in getSortedQualifyingClasses()" :key="index">
                         <div class="p-3 rounded-md bg-gray-700 border border-orange-500">
                             <div class="flex justify-between items-center">
-                                <span x-text="cls.name" class="font-medium"></span>
                                 <div class="flex items-center">
-                                    <div class="w-24 bg-gray-600 rounded-full h-2">
-                                        <div class="bg-orange-500 h-2 rounded-full" :style="`width: ${cls.normalizedBarWidth}%`"></div>
-                                    </div>
+                                    <span class="w-8 h-8 rounded-full bg-orange-600 flex items-center justify-center mr-3 text-white font-bold" x-text="cls.rank"></span>
+                                    <span x-text="cls.name" class="font-medium"></span>
                                 </div>
                             </div>
                             <div class="text-sm text-orange-300 mt-1">
@@ -252,7 +252,7 @@
                 </div>
             </template>
             <template x-if="!attributes">
-                <div class="text-center py-8 text-orange-400 opacity-70">
+                <div class="text-center py-8 text-orange-400 opacity-70 flex-grow flex items-center justify-center">
                     Generate attributes to see class qualifications
                 </div>
             </template>
@@ -963,24 +963,27 @@
                 // Sort by fitness score (descending)
                 const sortedClasses = qualifiedClasses.sort((a, b) => b.fitnessScore - a.fitnessScore);
                 
-                // Find maximum and minimum scores to normalize bar widths
+                // Assign ranks (same rank for same scores, no rank skipping)
                 if (sortedClasses.length > 0) {
-                    const maxScore = sortedClasses[0].fitnessScore;
-                    const minScore = sortedClasses.length > 1 ? 
-                        sortedClasses[sortedClasses.length - 1].fitnessScore : 
-                        0;
+                    let currentRank = 1;
+                    let currentScore = sortedClasses[0].fitnessScore;
+                    let sameRankCount = 1;
                     
-                    // Calculate normalized bar widths (0-100%)
-                    return sortedClasses.map(cls => {
-                        const normalizedWidth = maxScore > minScore ? 
-                            ((cls.fitnessScore - minScore) / (maxScore - minScore)) * 100 : 
-                            100;
-                        
-                        return {
-                            ...cls,
-                            normalizedBarWidth: normalizedWidth
-                        };
-                    });
+                    sortedClasses[0].rank = currentRank;
+                    
+                    for (let i = 1; i < sortedClasses.length; i++) {
+                        if (Math.abs(sortedClasses[i].fitnessScore - currentScore) < 0.0001) {
+                            // Same score, assign same rank
+                            sortedClasses[i].rank = currentRank;
+                            sameRankCount++;
+                        } else {
+                            // Different score, increment rank by 1 regardless of how many had the previous rank
+                            currentRank++;
+                            currentScore = sortedClasses[i].fitnessScore;
+                            sortedClasses[i].rank = currentRank;
+                            sameRankCount = 1;
+                        }
+                    }
                 }
                 
                 return sortedClasses;
