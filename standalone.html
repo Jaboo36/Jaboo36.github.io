@@ -37,11 +37,43 @@
 
         <!-- Section 2: Generated Attributes -->
         <div class="bg-gray-800 rounded-lg shadow-md p-6 border border-orange-500 h-[800px] flex flex-col">
-            <h2 class="text-xl font-semibold mb-2 text-orange-400 text-center">Generated Attributes</h2>
+            <h2 class="text-xl font-semibold mb-2 text-orange-400 text-center" x-show="selectedMethod !== 'methodVI' || !methodVIClassSelection">Generated Attributes</h2>
             <div class="flex-grow flex flex-col justify-center">
 
-            <!-- Standard attribute display - only show when not in Method II or when Set has been chosen -->
-            <template x-if="selectedMethod !== 'methodII' || !methodIISets">
+            <!-- Method VI Class Selection -->
+            <template x-if="selectedMethod === 'methodVI' && methodVIClassSelection">
+                <div class="flex-grow flex flex-col justify-start">
+                    <h2 class="text-xl font-semibold mb-4 text-orange-400 text-center">Class Selection</h2>
+                    
+                    <div class="space-y-4 overflow-y-auto max-h-[600px] flex-grow pr-2">
+                        <template x-for="(cls, index) in classes" :key="index">
+                            <div 
+                                class="p-3 rounded-md border cursor-pointer"
+                                :class="selectedClassForMethodVI === cls ? 'bg-gray-700 border-orange-500 text-orange-400' : 'bg-gray-700 border-gray-600 text-orange-300 hover:border-orange-400'"
+                                @click="selectedClassForMethodVI = cls">
+                                <div class="flex items-center">
+                                    <span x-text="cls.name" class="font-medium"></span>
+                                </div>
+                                <div class="text-sm text-orange-300 mt-1">
+                                    <span x-text="formatRequirements(cls.requirements)"></span>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                    
+                    <div class="mt-4 text-center">
+                        <button 
+                            @click="generateMethodVIAttributes()"
+                            class="px-6 py-2 bg-orange-600 text-white font-medium rounded hover:bg-orange-700"
+                            :disabled="!selectedClassForMethodVI">
+                            Generate Attributes for <span x-text="selectedClassForMethodVI ? selectedClassForMethodVI.name : ''"></span>
+                        </button>
+                    </div>
+                </div>
+            </template>
+
+            <!-- Standard attribute display - only show when not in Method II or Method VI selection, or when Set/Class has been chosen -->
+            <template x-if="(selectedMethod !== 'methodII' || !methodIISets) && (selectedMethod !== 'methodVI' || !methodVIClassSelection)">
                 <div class="flex flex-col items-center flex-grow justify-center">
                     <template x-if="attributes && generatedValues && selectedMethod === 'methodIII'">
                         <h3 class="text-sm font-medium mb-4 text-orange-300 text-center">Use the dropdowns to assign values to attributes</h3>
@@ -225,8 +257,8 @@
             </template>
         </div>
 
-        <!-- Section 3: Class Qualifications -->
-        <div class="bg-gray-800 rounded-lg shadow-md p-6 border border-orange-500 h-[800px] flex flex-col">
+        <!-- Section 3: Class Qualifications (hidden for Method VI) -->
+        <div class="bg-gray-800 rounded-lg shadow-md p-6 border border-orange-500 h-[800px] flex flex-col" x-show="selectedMethod !== 'methodVI'">
             <h2 class="text-xl font-semibold mb-4 text-orange-400">Class Qualifications</h2>
             <template x-if="attributes">
                 <div class="space-y-4 overflow-y-auto flex-grow pr-2">
@@ -257,6 +289,44 @@
                 </div>
             </template>
         </div>
+        
+        <!-- Selected Class info for Method VI -->
+        <div class="bg-gray-800 rounded-lg shadow-md p-6 border border-orange-500 h-[800px] flex flex-col" x-show="selectedMethod === 'methodVI'">
+            <h2 class="text-xl font-semibold mb-4 text-orange-400">Generated Attributes</h2>
+            
+            <template x-if="attributes && !methodVIClassSelection">
+                <div class="flex-grow flex flex-col justify-center">
+                    <div class="text-center mb-4">
+                        <div class="font-medium text-lg text-orange-400" x-text="selectedClassForMethodVI ? selectedClassForMethodVI.name : ''"></div>
+                        <div class="text-sm text-orange-300 mt-1" x-text="selectedClassForMethodVI ? formatRequirements(selectedClassForMethodVI.requirements) : ''"></div>
+                    </div>
+                    
+                    <div class="space-y-5 flex flex-col items-center">
+                        <template x-for="(attr, index) in attributeNames" :key="index">
+                            <div class="relative mb-4">
+                                <div class="absolute -left-10 top-1/2 transform -translate-y-1/2 font-bold text-orange-500 text-right w-8"
+                                     x-text="attr.substring(0, 3).toUpperCase()"></div>
+                                <div class="h-20 w-20 bg-gray-700 border border-orange-700 rounded-md flex items-center justify-center">
+                                    <template x-if="attributes">
+                                        <div class="text-center">
+                                            <div x-text="attributes[attr.toLowerCase()]" class="text-xl font-bold"></div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </template>
+            
+            <template x-if="methodVIClassSelection || !attributes">
+                <div class="flex-grow flex items-center justify-center">
+                    <div class="text-center text-orange-300">
+                        Select a class and generate attributes to see results here
+                    </div>
+                </div>
+            </template>
+        </div>
     </div>
 </div>
 
@@ -272,6 +342,8 @@
             selectedSetIndex: -1,
             highlightedSet: -1,
             attributeAssignments: {},
+            methodVIClassSelection: false,
+            selectedClassForMethodVI: null,
 
             // Methods
             methods: [
@@ -598,7 +670,21 @@
 
             generateAttributes() {
                 console.log('Generating attributes using method:', this.selectedMethod);
-
+                
+                // Reset method-specific states
+                this.methodIISets = null;
+                this.selectedSetIndex = -1;
+                
+                // For Method VI, show class selection
+                if (this.selectedMethod === 'methodVI') {
+                    this.methodVIClassSelection = true;
+                    this.selectedClassForMethodVI = null;
+                    this.attributes = null;
+                    return;
+                }
+                
+                this.methodVIClassSelection = false;
+                
                 let values = [];
 
                 switch (this.selectedMethod) {
@@ -871,6 +957,40 @@
                 return Object.entries(requirements)
                     .map(([attr, value]) => `${attr}: ${value}+`)
                     .join(', ');
+            },
+            
+            generateMethodVIAttributes() {
+                if (!this.selectedClassForMethodVI) return;
+                
+                const selectedClass = this.selectedClassForMethodVI;
+                let values = [];
+                
+                // Get required attributes for the selected class
+                const requiredAttrs = Object.keys(selectedClass.requirements);
+                
+                for (let i = 0; i < this.attributeNames.length; i++) {
+                    const attrName = this.attributeNames[i];
+                    
+                    if (requiredAttrs.includes(attrName)) {
+                        // For required attributes use Method III (4d6 drop lowest)
+                        // and keep rolling until the requirement is met
+                        let minRequired = selectedClass.requirements[attrName];
+                        let roll = this.rollFourD6DropLowest();
+                        
+                        // Keep rolling until we meet the requirement
+                        while (roll < minRequired) {
+                            roll = this.rollFourD6DropLowest();
+                        }
+                        
+                        values.push(roll);
+                    } else {
+                        // For non-required attributes use Method I (3d6)
+                        values.push(this.rollThreeD6());
+                    }
+                }
+                
+                this.applyAttributeValues(values);
+                this.methodVIClassSelection = false; // Hide class selection after attributes are generated
             },
             
             calculateClassFitnessScore(characterClass) {
